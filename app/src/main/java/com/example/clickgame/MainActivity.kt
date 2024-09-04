@@ -40,6 +40,7 @@ fun JogoDeCliques() {
     var imagemAtual by remember { mutableStateOf(R.drawable.image_initial) }
     var jogoFinalizado by remember { mutableStateOf(false) }
     var desistiu by remember { mutableStateOf(false) }
+    var chegouUltimo by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
@@ -49,7 +50,10 @@ fun JogoDeCliques() {
             proporcao < 0.33f -> R.drawable.image_initial
             proporcao < 0.66f -> R.drawable.image_median
             proporcao < 1f -> R.drawable.image_final
-            else -> R.drawable.image_conquista
+            else -> {
+                chegouUltimo = true
+                R.drawable.image_conquista
+            }
         }
     }
 
@@ -61,6 +65,10 @@ fun JogoDeCliques() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(painter = painterResource(imagemAtual), contentDescription = null)
+                if (chegouUltimo) {
+                    Text(text = "Você chegou no último. Parabéns!")
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
                 Text(text = "Novo jogo?")
                 Row {
                     Button(onClick = {
@@ -69,6 +77,7 @@ fun JogoDeCliques() {
                         imagemAtual = R.drawable.image_initial
                         jogoFinalizado = false
                         desistiu = false
+                        chegouUltimo = false
                     }) {
                         Text(text = "Sim")
                     }
