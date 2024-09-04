@@ -18,9 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.example.clickgame.ui.theme.ClickgameTheme
 import kotlin.random.Random
 import androidx.compose.ui.platform.LocalContext
-
-
-
+import com.example.clickgame.data.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,8 +34,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun JogoDeCliques() {
     var cliques by remember { mutableStateOf(0) }
-    var numeroObjetivo by remember { mutableStateOf(Random.nextInt(50, 200)) }
-    var imagemAtual by remember { mutableStateOf(R.drawable.image_initial) }
+    var numeroObjetivo by remember { mutableStateOf(Random.nextInt(5, 20)) }
+    var listaDeImagens by remember { mutableStateOf(tipos.random()) }
+    var imagemAtual by remember { mutableStateOf(listaDeImagens[0]) }
     var jogoFinalizado by remember { mutableStateOf(false) }
     var desistiu by remember { mutableStateOf(false) }
     var chegouUltimo by remember { mutableStateOf(false) }
@@ -46,15 +45,16 @@ fun JogoDeCliques() {
 
     val atualizarImagem = {
         val proporcao = cliques.toFloat() / numeroObjetivo
-        imagemAtual = when {
-            proporcao < 0.33f -> R.drawable.image_initial
-            proporcao < 0.66f -> R.drawable.image_median
-            proporcao < 1f -> R.drawable.image_final
+        val indexImagem = when {
+            proporcao < 0.33f -> 0
+            proporcao < 0.66f -> 1
+            proporcao < 1f -> 2
             else -> {
                 chegouUltimo = true
-                R.drawable.image_conquista
+                3
             }
         }
+        imagemAtual = listaDeImagens[indexImagem]
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -73,8 +73,9 @@ fun JogoDeCliques() {
                 Row {
                     Button(onClick = {
                         cliques = 0
-                        numeroObjetivo = Random.nextInt(50, 200)
-                        imagemAtual = R.drawable.image_initial
+                        numeroObjetivo = Random.nextInt(5, 20)
+                        listaDeImagens = tipos.random()
+                        imagemAtual = listaDeImagens[0]
                         jogoFinalizado = false
                         desistiu = false
                         chegouUltimo = false
