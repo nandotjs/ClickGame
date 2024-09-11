@@ -13,12 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.clickgame.ui.theme.ClickgameTheme
-import kotlin.random.Random
 import androidx.compose.ui.platform.LocalContext
 import com.example.clickgame.data.*
+import com.example.clickgame.data.GameState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,52 +32,42 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun JogoDeCliques() {
-    var cliques by remember { mutableStateOf(0) }
-    var numeroObjetivo by remember { mutableStateOf(Random.nextInt(5, 20)) }
+    var gameState by remember { mutableStateOf(GameState()) }
     var listaDeImagens by remember { mutableStateOf(tipos.random()) }
-    var imagemAtual by remember { mutableStateOf(listaDeImagens[0]) }
-    var jogoFinalizado by remember { mutableStateOf(false) }
-    var desistiu by remember { mutableStateOf(false) }
-    var chegouUltimo by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
     val atualizarImagem = {
-        val proporcao = cliques.toFloat() / numeroObjetivo
+        val proporcao = gameState.cliques.toFloat() / gameState.numeroObjetivo
         val indexImagem = when {
             proporcao < 0.33f -> 0
             proporcao < 0.66f -> 1
             proporcao < 1f -> 2
             else -> {
-                chegouUltimo = true
+                gameState = gameState.copy(chegouUltimo = true)
                 3
             }
         }
-        imagemAtual = listaDeImagens[indexImagem]
+        gameState = gameState.copy(imagemAtual = listaDeImagens[indexImagem])
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (jogoFinalizado) {
+        if (gameState.jogoFinalizado) {
             Column(
                 modifier = Modifier.align(Alignment.Center),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(painter = painterResource(imagemAtual), contentDescription = null)
-                if (chegouUltimo) {
+                Image(painter = painterResource(gameState.imagemAtual), contentDescription = null)
+                if (gameState.chegouUltimo) {
                     Text(text = "Você chegou no último. Parabéns!")
                     Spacer(modifier = Modifier.height(16.dp))
                 }
                 Text(text = "Novo jogo?")
                 Row {
                     Button(onClick = {
-                        cliques = 0
-                        numeroObjetivo = Random.nextInt(5, 20)
+                        gameState = GameState()
                         listaDeImagens = tipos.random()
-                        imagemAtual = listaDeImagens[0]
-                        jogoFinalizado = false
-                        desistiu = false
-                        chegouUltimo = false
                     }) {
                         Text(text = "Sim")
                     }
@@ -95,24 +84,22 @@ fun JogoDeCliques() {
                 modifier = Modifier
                     .align(Alignment.Center)
                     .clickable {
-                        cliques++
+                        gameState = gameState.copy(cliques = gameState.cliques + 1)
                         atualizarImagem()
-                        if (cliques >= numeroObjetivo) {
-                            jogoFinalizado = true
+                        if (gameState.cliques >= gameState.numeroObjetivo) {
+                            gameState = gameState.copy(jogoFinalizado = true)
                         }
                     },
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(painter = painterResource(imagemAtual), contentDescription = null)
+                Image(painter = painterResource(gameState.imagemAtual), contentDescription = null)
             }
         }
 
         Button(
             onClick = {
-                jogoFinalizado = true
-                desistiu = true
-                imagemAtual = R.drawable.image_desistencia
+                gameState = gameState.copy(jogoFinalizado = true, desistiu = true, imagemAtual = R.drawable.image_desistencia)
             },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -120,13 +107,5 @@ fun JogoDeCliques() {
         ) {
             Text(text = "Desistir")
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    ClickgameTheme {
-        JogoDeCliques()
     }
 }
